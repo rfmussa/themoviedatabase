@@ -1,0 +1,39 @@
+<FrameLayout
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        android:id="@+id/movie_container"
+        android:layout_width="match_parent"
+        android:layout_height="320dp"
+        android:layout_gravity="center"
+        android:clickable="true"
+        android:layout_margin="1dp"
+        android:foreground="?attr/selectableItemBackground">
+
+    <ImageView
+            android:id="@+id/image"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scaleType="centerCrop"/>
+
+    <View
+            android:id="@+id/titleBackground"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:layout_gravity="bottom"
+            android:alpha="0.8"
+            android:background="@android:color/black"
+            android:gravity="center"/>
+
+    <TextView
+            android:id="@+id/title"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:layout_gravity="bottom"
+            android:gravity="center"
+            android:maxLines="2"
+            android:ellipsize="end"
+            android:paddingLeft="8dp"
+            android:paddingRight="8dp"
+            android:textColor="@android:color/white"
+            android:textSize="12sp"/>
+
+</FrameLayout>

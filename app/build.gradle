@@ -1,0 +1,87 @@
+apply plugin: 'com.android.application'
+apply plugin: 'kotlin-android'
+apply plugin: 'kotlin-android-extensions'
+apply plugin: 'kotlin-kapt'
+
+android {
+    compileSdkVersion 28
+    buildToolsVersion '28.0.3'
+    defaultConfig {
+        applicationId "com.renato.moviedatabase"
+        minSdkVersion 21
+        targetSdkVersion 28
+        versionCode 1
+        versionName "1.0"
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+    compileOptions {
+        targetCompatibility JavaVersion.VERSION_1_8
+        sourceCompatibility JavaVersion.VERSION_1_8
+    }
+}
+
+// IMPORTANT!  Enables view caching in viewholders.
+// See: https://github.com/Kotlin/KEEP/blob/master/proposals/android-extensions-entity-caching.md
+androidExtensions {
+    experimental = true
+}
+
+dependencies {
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    api deps.kotlin.stdlib7
+
+    api deps.android.ktx
+    api deps.android.appCompat
+    api deps.android.cardView
+    api deps.android.designSupport
+
+    api deps.navigation.ui
+    api deps.navigation.fragment
+
+    api deps.ui.groupie
+    api deps.ui.groupieExtensions
+    api deps.ui.picasso
+    api deps.ui.materialDialog
+    api deps.ui.materialDialogBottomSheet
+
+
+    api deps.reactive.rxJava
+    api deps.reactive.rxKotlin
+    api deps.reactive.rxAndroid
+
+    api deps.network.retrofit
+    api deps.network.rxAdapter
+    implementation 'com.github.hotchemi:khronos:0.9.0'
+
+    api deps.network.okhttp
+    api deps.network.moshi
+    api deps.network.moshiKotlin
+    api deps.network.moshiConverter
+    testImplementation deps.network.mockk
+    testImplementation deps.network.mockwebserver
+    testImplementation 'android.arch.core:core-testing:1.1.1'
+
+
+    api deps.arch.roxie
+    api deps.arch.dagger
+    kapt deps.arch.daggerCompiler
+
+    implementation 'com.android.support.constraint:constraint-layout:1.1.3'
+
+
+
+    //junit 5
+    testImplementation 'org.junit.jupiter:junit-jupiter-engine:5.3.2'
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.3.2'
+    testImplementation 'org.junit.platform:junit-platform-runner:1.3.2'
+
+    androidTestImplementation 'androidx.test:runner:1.1.1'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.1.1'
+    implementation 'androidx.lifecycle:lifecycle-extensions:2.0.0'
+}
