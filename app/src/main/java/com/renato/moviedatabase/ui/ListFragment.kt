@@ -9,15 +9,12 @@ import android.view.ViewGroup
 import android.widget.SeekBar
 import android.widget.TextView
 import androidx.core.os.bundleOf
-import androidx.core.view.ViewCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
 import androidx.navigation.findNavController
-import androidx.navigation.fragment.FragmentNavigator
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.GridLayoutManager
-import androidx.recyclerview.widget.LinearSnapHelper
 import com.afollestad.materialdialogs.MaterialDialog
 import com.afollestad.materialdialogs.bottomsheets.BottomSheet
 import com.afollestad.materialdialogs.customview.customView
@@ -28,26 +25,20 @@ import com.renato.moviedatabase.di.DaggerMoviesComponent
 import com.renato.moviedatabase.di.ViewModelFactory
 import com.xwray.groupie.GroupAdapter
 import com.xwray.groupie.kotlinandroidextensions.ViewHolder
-import khronos.Dates.today
-import khronos.days
-import khronos.minus
-import khronos.toString
 import kotlinx.android.synthetic.main.fragment_list.*
-import kotlinx.android.synthetic.main.item_movie.view.*
 
 class ListFragment : Fragment() {
     private val groupAdapter: GroupAdapter<ViewHolder> = GroupAdapter()
     private lateinit var gridLayoutManager: GridLayoutManager
     private lateinit var viewModel: MovieListViewModel
+    private var seekBarProgress = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         viewModel = ViewModelProviders.of(this, obtainVMFactory())
             .get(MovieListViewModel::class.java)
 
-
         viewModel.observableState.observe(this, Observer { state -> state?.let { render(state) } })
-
         viewModel.dispatch(Action.LoadFeed(null))
     }
 
@@ -57,8 +48,11 @@ class ListFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
         setupRecyclerView()
+
+        retryButton.setOnClickListener {
+            viewModel.dispatch(Action.LoadFeed(null))
+        }
     }
 
     private fun obtainVMFactory(): ViewModelFactory<MovieListViewModel> {
@@ -73,29 +67,32 @@ class ListFragment : Fragment() {
             when {
                 isLoading -> renderLoadingState()
                 isError -> renderErrorState()
-                else -> renderPosts(state.movies)
+                else -> {
+                    renderPosts(state.movies)
+                    seekBarProgress = state.startDate ?: 0
+                }
             }
         }
     }
 
     private fun renderLoadingState() {
-        list.visibility = View.GONE
-        errorMessage.visibility = View.GONE
-        fab.hide()
         progressBar.show()
+        list.visibility = View.GONE
+        errorView.visibility = View.GONE
+        fab.hide()
     }
 
     private fun renderErrorState() {
         progressBar.hide()
         list.visibility = View.GONE
-        errorMessage.visibility = View.VISIBLE
-        //errorMessage.text = getString(R.string.feed_loading_error_message)
+        errorView.visibility = View.VISIBLE
+        fab.hide()
     }
 
     private fun renderPosts(movies: List<Movie>) {
         progressBar.hide()
         fab.show()
-        errorMessage.visibility = View.GONE
+        errorView.visibility = View.GONE
         list.visibility = View.VISIBLE
         groupAdapter.update(movies.map { MovieItem(it) })
     }
@@ -107,9 +104,6 @@ class ListFragment : Fragment() {
         gridLayoutManager = GridLayoutManager(this.context, groupAdapter.spanCount, getOrientation(), false).apply {
             spanSizeLookup = groupAdapter.spanSizeLookup
         }
-
-//        val snapHelper = LinearSnapHelper()
-//        snapHelper.attachToRecyclerView(list)
 
         list.apply {
             layoutManager = gridLayoutManager
@@ -126,9 +120,10 @@ class ListFragment : Fragment() {
             // Push action to navigation controller
             view.findNavController().navigate(R.id.movieClick, bundle, null, null)
         }
-viewModel.observableState.value
+
+        //TODO convert to Rx Stream
         fab.setOnClickListener {
-            showDialog()
+            showDialog(seekBarProgress)
         }
     }
 
@@ -141,13 +136,13 @@ viewModel.observableState.value
     }
 
     @SuppressLint("SetTextI18n")
-    private fun showDialog() {
+    private fun showDialog(startDate: Int) {
         MaterialDialog(this.context!!, BottomSheet())
             .show {
                 customView(R.layout.filter_bottom_sheet)
                 val seekBar = this.view.findViewById<SeekBar>(R.id.seekBar)
                 val title = this.view.findViewById<TextView>(R.id.filterTitle)
-
+                seekBar.progress = startDate
                 seekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
                     override fun onStartTrackingTouch(seekBar: SeekBar?) {}
 
@@ -156,16 +151,12 @@ viewModel.observableState.value
                     override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
                         title.text = "Show Changes for the last ${seekBar!!.progress} days"
                     }
-
                 }
 
                 )
-                title.text = "Show Changes for the last 0 days"
-                positiveButton(R.string.set) { dialog ->
-                    // convert to date format
-                    //TODO move this logic to useCase
-                    val startDate = (today - seekBar.progress.days).toString("YYYYMMdd")
-                    viewModel.dispatch(Action.LoadFeed(startDate))
+                title.text = "Show Changes for the last $startDate days"
+                positiveButton(R.string.set) {
+                    viewModel.dispatch(Action.LoadFeed(seekBar.progress))
                 }
             }
     }

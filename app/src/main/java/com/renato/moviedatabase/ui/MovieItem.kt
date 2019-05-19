@@ -15,7 +15,7 @@ class MovieItem constructor(val movie: Movie) : Item() {
         viewHolder.title.text = movie.title
         Picasso.get()
             .load(IMAGE_URL + movie.posterImage)
-
+            .placeholder(R.drawable.placeholder)
             .into(viewHolder.image)
 
         // Set item specific transition names

@@ -22,6 +22,16 @@ import kotlinx.android.synthetic.main.fragment_detail.*
 class DetailFragment : Fragment() {
     private lateinit var viewModel: DetailViewModel
 
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        viewModel = ViewModelProviders.of(this, obtainVMFactory())
+            .get(DetailViewModel::class.java)
+
+        viewModel.observableState.observe(this, Observer { state -> state?.let { render(state) } })
+
+        viewModel.dispatch(DetailAction.LoadMovie(arguments!!.getParcelable("movie") as Movie))
+    }
+
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         return inflater.inflate(R.layout.fragment_detail, container, false)
     }
@@ -29,32 +39,18 @@ class DetailFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         collapsingToolbar?.let {
-            collapsingToolbar.setContentScrimColor(ContextCompat.getColor(context!!, R.color.colorPrimary))
-            collapsingToolbar.setExpandedTitleColor(resources.getColor(android.R.color.white))
-            collapsingToolbar.setCollapsedTitleTextColor(resources.getColor(android.R.color.white))
-            collapsingToolbar.title = "Movie Details"
-            collapsingToolbar.isTitleEnabled = true
+            it.setContentScrimColor(ContextCompat.getColor(context!!, R.color.colorPrimary))
+            it.setExpandedTitleColor(resources.getColor(android.R.color.white))
+            it.setCollapsedTitleTextColor(resources.getColor(android.R.color.white))
+            it.title = "Movie Details"
+            it.isTitleEnabled = true
         }
 
+        (activity as AppCompatActivity).setSupportActionBar(toolbar)
+        val actionBar = (activity as AppCompatActivity).supportActionBar
+        actionBar?.setDisplayHomeAsUpEnabled(true)
+        setupWithNavController(toolbar,findNavController())
 
-        if (toolbar != null) {
-            (activity as AppCompatActivity).setSupportActionBar(toolbar)
-            val actionBar = (activity as AppCompatActivity).supportActionBar
-            actionBar?.setDisplayHomeAsUpEnabled(true)
-            setupWithNavController(toolbar,findNavController())
-            //setupActionBarWithNavController(activity as AppCompatActivity, findNavController())
-
-        } else {
-            // Don't inflate. Tablet is in landscape mode.
-        }
-
-
-        viewModel = ViewModelProviders.of(this, obtainVMFactory())
-            .get(DetailViewModel::class.java)
-
-        viewModel.observableState.observe(this, Observer { state -> state?.let { render(state) } })
-
-        viewModel.dispatch(DetailAction.LoadMovie(arguments!!.getParcelable("movie") as Movie))
     }
 
     private fun obtainVMFactory(): ViewModelFactory<DetailViewModel> {
@@ -72,10 +68,15 @@ class DetailFragment : Fragment() {
 
     private fun renderMovie(movie: Movie) {
         Picasso.get()
-            .load(IMAGE_URL + movie.posterImage).into(poster)
+            .load(IMAGE_URL + movie.posterImage)
+            .placeholder(R.drawable.placeholder)
+            .fit()
+            .into(poster)
 
         Picasso.get()
-            .load(IMAGE_URL + movie.backdropImage).into(backdrop)
+            .load(IMAGE_URL + movie.backdropImage)
+            .placeholder(R.drawable.placeholder)
+            .into(backdrop)
 
         title.text = movie.title
         overview.text = movie.overview

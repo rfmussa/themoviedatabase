@@ -54,6 +54,9 @@ dependencies {
     api deps.reactive.rxJava
     api deps.reactive.rxKotlin
     api deps.reactive.rxAndroid
+    api deps.reactive.rxBindingCore
+    api deps.reactive.rxBindingMaterial
+    api deps.reactive.rxBindingCompat
 
     api deps.network.retrofit
     api deps.network.rxAdapter
